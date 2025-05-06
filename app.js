@@ -8,6 +8,7 @@ const port = 3000;
 
 app.set('view engine', 'ejs');
 app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 app.use('/uploads', express.static('uploads'));
 
 const storage = multer.diskStorage({
@@ -32,6 +33,19 @@ app.get('/', (req, res) => {
 
 app.post('/upload', upload.single('videoFile'), (req, res) => {
     res.redirect('/');
+});
+
+app.post('/rename', (req, res) => {
+    const { oldName, newName } = req.body;
+    const oldPath = path.join(__dirname, 'uploads', oldName);
+    const newPath = path.join(__dirname, 'uploads', newName + path.extname(oldName));
+    
+    try {
+        fs.renameSync(oldPath, newPath);
+        res.json({ success: true, newName: newName + path.extname(oldName) });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
 });
 
 app.get('/videos', (req, res) => {
